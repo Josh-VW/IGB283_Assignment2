@@ -172,6 +172,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rootObject: {fileID: 2009696805}
+  walkSpeed: 5
+  walkBounds:
+  - -10
+  - 10
+  nodSpeed: 60
+  nodAngleRange:
+  - -30
+  - 30
+  jumpSpeed: 15
+  jumpRange:
+  - 0
+  - 5
 --- !u!1 &249489740
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class Limb : MonoBehaviour
 {
@@ -203,5 +205,57 @@ public class Limb : MonoBehaviour
         {
             child.GetComponent<Limb>().Scale(factor, point);
         }
+    }
+
+    // Performs a translation transform towards and ending at a specified point
+    public void TranslateTowardsPoint(Vector3 targetPoint, float speed, out bool destinationReached)
+    {
+        // Calculate whether destination can be reached in this step
+        Vector3 deltaPosition = targetPoint - position;
+        if (deltaPosition.magnitude == 0)
+        {
+            destinationReached = true;
+            return;
+        }
+        float maxStep = speed * Time.deltaTime;
+        float distanceRatio = maxStep / deltaPosition.magnitude;
+        if (distanceRatio < 0) distanceRatio = -distanceRatio; // Always step towards (+ve) destinatino
+
+        if (distanceRatio < 1.0f) // Destination can't be reached in this step
+        {
+            // Scale delta position by percentage of travellable distance
+            Translate(deltaPosition * distanceRatio);
+            destinationReached = false;
+            return;
+        }
+        // Else, Destination can be reached in this step, travel to destination
+        Translate(deltaPosition);
+        destinationReached = true;
+    }
+
+    // Performs a rotation transform towards and ending at a specified angle
+    public void RotateTowardsAngle(float targetAngle, float rotationSpeed, out bool rotationReached)
+    {
+        // Calculate whether rotation can be reached in this step
+        float deltaRotation = targetAngle - rotation;
+        if (deltaRotation == 0)
+        {
+            rotationReached = true;
+            return;
+        }
+        float maxStep = rotationSpeed * Time.deltaTime;
+        float rotationRatio = maxStep / deltaRotation;
+        if (rotationRatio < 0) rotationRatio = -rotationRatio; // Always step towards (+ve) target angle
+
+        if (rotationRatio < 1.0f) // Angle can't be reached in this step
+        {
+            // Scale delta rotation by percentage of travellable rotation
+            Rotate(deltaRotation * rotationRatio, jointLocation);
+            rotationReached = false;
+            return;
+        }
+        // Else, Angle can be reached in this step, rotation to angle
+        Rotate(deltaRotation, jointLocation);
+        rotationReached = true;
     }
 }

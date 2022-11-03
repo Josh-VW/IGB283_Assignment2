@@ -8,7 +8,7 @@ public class AdvancedAvatar : MonoBehaviour
     public GameObject rootObject;
 
     public float walkSpeed = 5.0f;
-    public float[] walkBounds = new float[] { -10.0f, 10.0f };
+    public float[] walkBounds = new float[] { -20.0f, 20.0f };
     public float nodSpeed = 60.0f;
     public float[] nodAngleRange = new float[] { -30.0f, 30.0f };
     public float jumpSpeed = 15.0f;
@@ -38,16 +38,6 @@ public class AdvancedAvatar : MonoBehaviour
         HeadNod();
         JumpUp();
         Collapse();
-
-        // Test Code: What an abomination this makes lol
-        //Torso().Translate(new Vector3(1 * Time.deltaTime, 0.0f, 1.0f)); // Simple translation
-        //Torso().Rotate(90 * Time.deltaTime, Torso().jointLocation); // Rotate constantly at 90 degress a second clockwise
-        //Head().Rotate(-180 * Time.deltaTime, Head().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
-        //LeftUpperLeg().Rotate(-180 * Time.deltaTime, LeftUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
-        //LeftLowerLeg().RotateTowardsAngle(90, 80, out _); // Rotate constantly to try to reach the global angle of 90 degrees at up to 80 degrees a second. Will never reach target as sum of parents rotation (torso 90/s, upper leg -180/s) is greater than rotation speed
-        //RightUpperLeg().Rotate(180 * Time.deltaTime, RightUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second clockwise
-        //RightLowerLeg().RotateTowardsAngle(-90, 360, out _); // Rotate constantly to try to reach the global angle of -90 degrees at up to 360 degrees a second
-
     }
 
     #region Limb Retrieval Methods

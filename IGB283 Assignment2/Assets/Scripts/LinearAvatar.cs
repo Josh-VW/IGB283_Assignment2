@@ -8,7 +8,7 @@ public class LinearAvatar : MonoBehaviour
     public GameObject rootObject;
 
     public float walkSpeed = 5.0f;
-    public float[] walkBounds = new float[] { -10.0f, 10.0f };
+    public float[] walkBounds = new float[] { -20.0f, 20.0f };
     public float nodSpeed = 60.0f;
     public float[] nodAngleRange = new float[] { -30.0f, 30.0f };
     public float jumpSpeed = 15.0f;

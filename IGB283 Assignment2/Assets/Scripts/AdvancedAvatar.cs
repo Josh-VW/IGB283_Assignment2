@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEngine;
 
-public class LinearAvatar : MonoBehaviour
+public class AdvancedAvatar : MonoBehaviour
 {
     public GameObject rootObject;
 
@@ -27,45 +27,69 @@ public class LinearAvatar : MonoBehaviour
     void Start()
     {
         AssembleAvatar();
-        Base().InitialTransform();
+        Torso().InitialTransform();
     }
 
     // Update is called once per frame
     void Update()
     {
-        Walk();
-        HeadNod();
-        JumpUp();
-        Collapse();
+        //Walk();
+        //HeadNod();
+        //JumpUp();
+        //Collapse();
+
+        // Test Code: What an abomination this makes
+        Torso().Translate(new Vector3(1 * Time.deltaTime, 0.0f, 1.0f)); // Simple translation
+        Torso().Rotate(90 * Time.deltaTime, Torso().jointLocation); // Rotate constantly at 90 degress a second clockwise
+        Head().Rotate(-180 * Time.deltaTime, Head().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
+        LeftUpperLeg().Rotate(-180 * Time.deltaTime, LeftUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
+        LeftLowerLeg().RotateTowardsAngle(90, 80, out _); // Rotate constantly to try to reach the global angle of 90 degrees at up to 80 degrees a second. Will never reach target as sum of parents rotation (torso 90/s, upper leg -180/s) is greater than rotation speed
+        RightUpperLeg().Rotate(180 * Time.deltaTime, RightUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second clockwise
+        RightLowerLeg().RotateTowardsAngle(-90, 360, out _); // Rotate constantly to try to reach the global angle of -90 degrees at up to 360 degrees a second
+
     }
 
     #region Limb Retrieval Methods
 
-    // Retrieve the limb component of the Base object
-    private Limb Base()
+    // Retrieve the limb component of the Torso object
+    private Limb Torso()
     {
         return rootObject.GetComponent<Limb>();
     }
 
-    // Retrieve the limb component of the Lower Arm object
-    private Limb LowerArm()
+    // Retrieve the limb component of the Left Upper Leg object
+    private Limb LeftUpperLeg()
     {
-        return Base()
+        return Torso()
             .children[0].GetComponent<Limb>();
     }
 
-    // Retrieve the limb component of the Upper Arm object
-    private Limb UpperArm()
+    // Retrieve the limb component of the Left Lower Leg object
+    private Limb LeftLowerLeg()
     {
-        return LowerArm()
+        return LeftUpperLeg()
+            .children[0].GetComponent<Limb>();
+    }
+
+    // Retrieve the limb component of the Right Upper Leg object
+    private Limb RightUpperLeg()
+    {
+        return Torso()
+            .children[1].GetComponent<Limb>();
+    }
+
+    // Retrieve the limb component of the Right Lower Leg object
+    private Limb RightLowerLeg()
+    {
+        return RightUpperLeg()
             .children[0].GetComponent<Limb>();
     }
 
     // Retrieve the limb component of the Head object
     private Limb Head()
     {
-        return UpperArm()
-            .children[0].GetComponent<Limb>();
+        return Torso()
+            .children[2].GetComponent<Limb>();
     }
 
     #endregion
@@ -75,13 +99,13 @@ public class LinearAvatar : MonoBehaviour
     // Transform avatar components to inital states
     private void AssembleAvatar()
     {
-        Base().GetComponent<Limb>().AssembleChildren();
+        Torso().GetComponent<Limb>().AssembleChildren();
     }
 
     // Translates the avatar from side to side
     private void Walk()
     {
-        Limb baseLimb = Base();
+        Limb baseLimb = Torso();
 
         //Move back and forth automatically or can adjust direction
         if (moving)
@@ -109,7 +133,6 @@ public class LinearAvatar : MonoBehaviour
         }
     }
 
-    // Nods avatar head while not collapsed
     private void HeadNod()
     {
         // Get the limb component of the head
@@ -133,9 +156,9 @@ public class LinearAvatar : MonoBehaviour
     // Handles avatar jumping controls and animation
     private void JumpUp()
     {
-        Limb baseLimb = Base();
-        Limb lowerArmLimb = LowerArm();
-        Limb upperArmLimb = UpperArm();
+        Limb baseLimb = Torso();
+        Limb lowerArmLimb = LeftUpperLeg();
+        Limb upperArmLimb = LeftLowerLeg();
         Limb headLimb = Head();
 
         // Jump straight upwards
@@ -191,9 +214,9 @@ public class LinearAvatar : MonoBehaviour
     // Handles avatar collapse controls and animation
     private void Collapse()
     {
-        Limb baseLimb = Base();
-        Limb lowerArmLimb = LowerArm();
-        Limb upperArmLimb = UpperArm();
+        Limb baseLimb = Torso();
+        Limb lowerArmLimb = LeftUpperLeg();
+        Limb upperArmLimb = LeftLowerLeg();
         Limb headLimb = Head();
 
         //Collapse while not jumping and still moving

@@ -31,10 +31,7 @@ public class Limb : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // Calculate initial transform matrices
-        TranslateJoint(-jointLocation);
-        Scale(scale, jointLocation);
-        Rotate(rotation, jointLocation);
+
     }
 
     // Update is called once per frame
@@ -75,25 +72,68 @@ public class Limb : MonoBehaviour
         mesh.triangles = triangles;
     }
 
-    // Initial translation to align joint to origin
-    public void TranslateJoint(Vector3 offset)
+    // Initial transform operations by initial values set in Unity Editor
+    public void InitialTransform()
     {
-        // Get the translation matrix for the offset
-        Matrix3x3 T = IGB283Transform.Translate(offset);
+        #region Scaling
+        
+        // Get the scaling matrix
+        Matrix3x3 S = IGB283Transform.Scale(scale);
+
+        // Apply scaling to object properties
+        for (int i = 0; i < childJointOffsets.Length; i++) childJointOffsets[i] = S.MultiplyPoint(childJointOffsets[i]);
+
+        // Apply scaling recursivly to children
+        foreach (GameObject child in children)
+        {
+            child.GetComponent<Limb>().Scale(scale, jointLocation);
+        }
+
+        #endregion
+
+        #region Rotation
+
+        // Get the rotation matrix
+        Matrix3x3 R = IGB283Transform.Rotate(rotation * Mathf.PI / 180);
+
+        // Apply transform to object properties
+        for (int i = 0; i < childJointOffsets.Length; i++) childJointOffsets[i] = R.MultiplyPoint(childJointOffsets[i]);
+
+        // Apply transform recursivly to children
+        foreach (GameObject child in children)
+        {
+            child.GetComponent<Limb>().Rotate(rotation, jointLocation);
+        }
+
+        #endregion
+
+        #region Translation
+
+        // Get the translation matrix
+        Matrix3x3 T = IGB283Transform.Translate(position);
+
+        // Apply transform to object properties
+        jointLocation = T.MultiplyPoint(jointLocation);
+
+        // Apply transform recursivly to children
+        foreach (GameObject child in children)
+        {
+            child.GetComponent<Limb>().Translate(position);
+        }
+
+        #endregion
+
+        // Combine transforms
+        Matrix3x3 M = T * R * S;
 
         // Apply transform to mesh
         Vector3[] vertices = mesh.vertices;
         for (int i = 0; i < vertices.Length; i++)
         {
-            vertices[i] = T.MultiplyPoint(vertices[i]);
+            vertices[i] = M.MultiplyPoint(vertices[i]);
         }
         mesh.vertices = vertices;
         mesh.RecalculateBounds();
-
-        // Apply transform to object properties
-        position = T.MultiplyPoint(position);
-        jointLocation = T.MultiplyPoint(jointLocation);
-        for (int i = 0; i < childJointOffsets.Length; i++) childJointOffsets[i] = T.MultiplyPoint(childJointOffsets[i]);
     }
 
     // Inital translation operations to translate children to associated child joint
@@ -109,7 +149,7 @@ public class Limb : MonoBehaviour
     // Performs a translation transform
     public void Translate(Vector3 offset)
     {
-        // Get the translation matrix for the offset
+        // Get the transform matrix
         Matrix3x3 T = IGB283Transform.Translate(offset);
 
         // Apply transform to mesh
@@ -136,7 +176,7 @@ public class Limb : MonoBehaviour
     // Performs a rotation transform about a point
     public void Rotate(float angle, Vector3 point)
     {
-        // Get the translation matrix for the offset
+        // Get the transform matrix
         Matrix3x3 T1 = IGB283Transform.Translate(-point);
         Matrix3x3 R = IGB283Transform.Rotate(angle * Mathf.PI / 180);
         Matrix3x3 T2 = IGB283Transform.Translate(point);
@@ -174,12 +214,12 @@ public class Limb : MonoBehaviour
         pointScaled.y *= factor.y;
         pointScaled.z *= factor.z;
 
-        // Get the translation matrix for the offset
+        // Get the transform matrix
         Matrix3x3 T1 = IGB283Transform.Translate(-point);
         Matrix3x3 R1 = IGB283Transform.Rotate(-rotation * Mathf.PI / 180);
         Matrix3x3 S = IGB283Transform.Scale(factor);
         Matrix3x3 R2 = IGB283Transform.Rotate(rotation * Mathf.PI / 180);
-        Matrix3x3 T2 = IGB283Transform.Translate(point);
+        Matrix3x3 T2 = IGB283Transform.Translate(pointScaled);
         Matrix3x3 M = T2 * R2 * S * R1 * T1;
 
         // Apply transform to mesh

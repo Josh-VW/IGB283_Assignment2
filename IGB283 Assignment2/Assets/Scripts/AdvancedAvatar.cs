@@ -12,15 +12,16 @@ public class AdvancedAvatar : MonoBehaviour
     public float nodSpeed = 60.0f;
     public float[] nodAngleRange = new float[] { -30.0f, 30.0f };
     public float jumpSpeed = 15.0f;
-    public float[] jumpRange = new float[] { 0.0f, 5.0f };
+    public float[] jumpRange = new float[] { 3.0f, 7.0f };
 
     private bool nodUp = true;
     private bool jumping = false;
     private bool up = true;
     private bool moving = true;
-    private bool forward = true;
+    private bool forward = false;
     private bool collapsing = false;
     private bool fall = true;
+    private bool stepUp = true;
     private float wait;
 
     // Start is called before the first frame update
@@ -33,19 +34,19 @@ public class AdvancedAvatar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Walk();
-        //HeadNod();
-        //JumpUp();
-        //Collapse();
+        Walk();
+        HeadNod();
+        JumpUp();
+        Collapse();
 
-        // Test Code: What an abomination this makes
-        Torso().Translate(new Vector3(1 * Time.deltaTime, 0.0f, 1.0f)); // Simple translation
-        Torso().Rotate(90 * Time.deltaTime, Torso().jointLocation); // Rotate constantly at 90 degress a second clockwise
-        Head().Rotate(-180 * Time.deltaTime, Head().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
-        LeftUpperLeg().Rotate(-180 * Time.deltaTime, LeftUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
-        LeftLowerLeg().RotateTowardsAngle(90, 80, out _); // Rotate constantly to try to reach the global angle of 90 degrees at up to 80 degrees a second. Will never reach target as sum of parents rotation (torso 90/s, upper leg -180/s) is greater than rotation speed
-        RightUpperLeg().Rotate(180 * Time.deltaTime, RightUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second clockwise
-        RightLowerLeg().RotateTowardsAngle(-90, 360, out _); // Rotate constantly to try to reach the global angle of -90 degrees at up to 360 degrees a second
+        // Test Code: What an abomination this makes lol
+        //Torso().Translate(new Vector3(1 * Time.deltaTime, 0.0f, 1.0f)); // Simple translation
+        //Torso().Rotate(90 * Time.deltaTime, Torso().jointLocation); // Rotate constantly at 90 degress a second clockwise
+        //Head().Rotate(-180 * Time.deltaTime, Head().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
+        //LeftUpperLeg().Rotate(-180 * Time.deltaTime, LeftUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second counter clockwise
+        //LeftLowerLeg().RotateTowardsAngle(90, 80, out _); // Rotate constantly to try to reach the global angle of 90 degrees at up to 80 degrees a second. Will never reach target as sum of parents rotation (torso 90/s, upper leg -180/s) is greater than rotation speed
+        //RightUpperLeg().Rotate(180 * Time.deltaTime, RightUpperLeg().jointLocation); // Rotate constantly at 180 degrees a second clockwise
+        //RightLowerLeg().RotateTowardsAngle(-90, 360, out _); // Rotate constantly to try to reach the global angle of -90 degrees at up to 360 degrees a second
 
     }
 
@@ -105,27 +106,82 @@ public class AdvancedAvatar : MonoBehaviour
     // Translates the avatar from side to side
     private void Walk()
     {
-        Limb baseLimb = Torso();
+        Limb torsoLimb = Torso();
+        Limb leftUpperLegLimb = LeftUpperLeg();
+        Limb leftLowerLegLimb = LeftLowerLeg();
+        Limb rightUpperLegLimb = RightUpperLeg();
+        Limb rightLowerLegLimb = RightLowerLeg();
 
         //Move back and forth automatically or can adjust direction
         if (moving)
         {
             if (forward)
             {
-                baseLimb.TranslateTowardsPoint(new Vector3(walkBounds[1], baseLimb.position.y, 1.0f), walkSpeed, out _);
+                torsoLimb.TranslateTowardsPoint(new Vector3(walkBounds[1], torsoLimb.position.y, 1.0f), walkSpeed, out _);
+
+                if(stepUp && !jumping)
+                {
+                    bool stepComplete;
+                    leftUpperLegLimb.RotateTowardsAngle(-50.0f, 360, out _);
+                    leftLowerLegLimb.RotateTowardsAngle(-60.0f, 360, out _);
+                    rightUpperLegLimb.RotateTowardsAngle(50.0f, 180, out stepComplete);
+                    rightLowerLegLimb.RotateTowardsAngle(-10.0f, 360, out _);
+                    if(stepComplete)
+                    {
+                        stepUp = false;
+                    }
+                    
+                }
+                if(!stepUp && !jumping)
+                {
+                    bool stepComplete;
+                    leftUpperLegLimb.RotateTowardsAngle(50.0f, 180, out stepComplete);
+                    leftLowerLegLimb.RotateTowardsAngle(-10.0f, 360, out _);
+                    rightUpperLegLimb.RotateTowardsAngle(-50.0f, 360, out _);
+                    rightLowerLegLimb.RotateTowardsAngle(-60.0f, 360, out _);
+                    if(stepComplete)
+                    {
+                        stepUp = true;
+                    }
+                }
             }
 
             if (!forward)
             {
-                baseLimb.TranslateTowardsPoint(new Vector3(walkBounds[0], baseLimb.position.y, 1.0f), walkSpeed, out _);
+                torsoLimb.TranslateTowardsPoint(new Vector3(walkBounds[0], torsoLimb.position.y, 1.0f), walkSpeed, out _);
+
+                if(stepUp && !jumping)
+                {
+                    bool stepComplete;
+                    leftUpperLegLimb.RotateTowardsAngle(50.0f, 360, out _);
+                    leftLowerLegLimb.RotateTowardsAngle(60.0f, 360, out _);
+                    rightUpperLegLimb.RotateTowardsAngle(-50.0f, 180, out stepComplete);
+                    rightLowerLegLimb.RotateTowardsAngle(10.0f, 360, out _);
+                    if(stepComplete)
+                    {
+                        stepUp = false;
+                    }
+                }
+                if(!stepUp && !jumping)
+                {
+                    bool stepComplete;
+                    leftUpperLegLimb.RotateTowardsAngle(-50.0f, 180, out stepComplete);
+                    leftLowerLegLimb.RotateTowardsAngle(10.0f, 360, out _);
+                    rightUpperLegLimb.RotateTowardsAngle(50.0f, 360, out _);
+                    rightLowerLegLimb.RotateTowardsAngle(60.0f, 360, out _);
+                    if(stepComplete)
+                    {
+                        stepUp = true;
+                    }
+                }
             }
 
-            if (Input.GetKey("d") || baseLimb.position.x <= walkBounds[0])
+            if (Input.GetKey("l") || torsoLimb.position.x <= walkBounds[0])
             {
                 forward = true;
             }
 
-            if (Input.GetKey("a")|| baseLimb.position.x >= walkBounds[1])
+            if (Input.GetKey("j")|| torsoLimb.position.x >= walkBounds[1])
             {
                 forward = false;
             }
@@ -156,33 +212,49 @@ public class AdvancedAvatar : MonoBehaviour
     // Handles avatar jumping controls and animation
     private void JumpUp()
     {
-        Limb baseLimb = Torso();
-        Limb lowerArmLimb = LeftUpperLeg();
-        Limb upperArmLimb = LeftLowerLeg();
+        Limb torsoLimb = Torso();
+        Limb leftUpperLegLimb = LeftUpperLeg();
+        Limb leftLowerLegLimb = LeftLowerLeg();
+        Limb rightUpperLegLimb = RightUpperLeg();
+        Limb rightLowerLegLimb = RightLowerLeg();
         Limb headLimb = Head();
 
         // Jump straight upwards
-        if (Input.GetKey("w") && !jumping && moving)
+        if (Input.GetKey("i") && !jumping && moving)
         {
             jumping = true;
             up = true;
             moving = false;
+
+            //Reset to original positions
+            leftUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            leftLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            rightUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            rightLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
         }
 
         //Jump while moving in a direction
-        if (Input.GetKey("s") && !jumping && moving)
+        if (Input.GetKey("k") && !jumping && moving)
         {
             jumping = true;
             up = true;
+
+            //Reset to original positions
+            leftUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            leftLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            rightUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            rightLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
         }
         
         //Upwards translation and limb rotations
         if (jumping && up)
         {
             bool heightReached;
-            baseLimb.TranslateTowardsPoint(new Vector3(baseLimb.position.x, jumpRange[1], 1.0f), jumpSpeed, out heightReached);
-            lowerArmLimb.RotateTowardsAngle(55.0f, 180, out _);
-            upperArmLimb.RotateTowardsAngle(-55.0f, 360, out _);
+            torsoLimb.TranslateTowardsPoint(new Vector3(torsoLimb.position.x, jumpRange[1], 1.0f), jumpSpeed, out heightReached);
+            leftUpperLegLimb.RotateTowardsAngle(-50.0f, 180, out _);
+            leftLowerLegLimb.RotateTowardsAngle(-20.0f, 360, out _);
+            rightUpperLegLimb.RotateTowardsAngle(50.0f, 180, out _);
+            rightLowerLegLimb.RotateTowardsAngle(20.0f, 360, out _);
             headLimb.RotateTowardsAngle(0.0f, 180, out _);
             if (heightReached)
             {
@@ -194,9 +266,11 @@ public class AdvancedAvatar : MonoBehaviour
         if (jumping && !up)
         {
             bool heightReached;
-            baseLimb.TranslateTowardsPoint(new Vector3(baseLimb.position.x, jumpRange[0], 1.0f), jumpSpeed, out heightReached);
-            lowerArmLimb.RotateTowardsAngle(0.0f, 180, out _);
-            upperArmLimb.RotateTowardsAngle(0.0f, 360, out _);
+            torsoLimb.TranslateTowardsPoint(new Vector3(torsoLimb.position.x, jumpRange[0], 1.0f), jumpSpeed, out heightReached);
+            leftUpperLegLimb.RotateTowardsAngle(0.0f, 180, out _);
+            leftLowerLegLimb.RotateTowardsAngle(0.0f, 360, out _);
+            rightUpperLegLimb.RotateTowardsAngle(0.0f, 180, out _);
+            rightLowerLegLimb.RotateTowardsAngle(0.0f, 360, out _);
             headLimb.RotateTowardsAngle(0.0f, 180, out _);
             if (heightReached)
             {
@@ -204,8 +278,10 @@ public class AdvancedAvatar : MonoBehaviour
                 moving = true;
 
                 // Return to original state
-                lowerArmLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
-                upperArmLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                leftUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                leftLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                rightUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                rightLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
                 headLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
             }
         }
@@ -214,28 +290,38 @@ public class AdvancedAvatar : MonoBehaviour
     // Handles avatar collapse controls and animation
     private void Collapse()
     {
-        Limb baseLimb = Torso();
-        Limb lowerArmLimb = LeftUpperLeg();
-        Limb upperArmLimb = LeftLowerLeg();
+        Limb torsoLimb = Torso();
+        Limb leftUpperLegLimb = LeftUpperLeg();
+        Limb leftLowerLegLimb = LeftLowerLeg();
+        Limb rightUpperLegLimb = RightUpperLeg();
+        Limb rightLowerLegLimb = RightLowerLeg();
         Limb headLimb = Head();
 
         //Collapse while not jumping and still moving
-        if (Input.GetKey("z") && !jumping && moving)
+        if (Input.GetKey("m") && !jumping && moving)
         {
             collapsing = true;
             fall = true;
             moving = false;
+
+            //Reset to original positions
+            leftUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            leftLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            rightUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+            rightLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
         }
         //Fall backwards and limb movement
         if (collapsing && fall)
         {
-            baseLimb.RotateTowardsAngle(90.0f, 90.0f, out bool collapseReached);
-            lowerArmLimb.RotateTowardsAngle(120.0f, 30.0f, out _);
-            upperArmLimb.RotateTowardsAngle(60.0f, 90.0f, out _);
-            headLimb.RotateTowardsAngle(-60.0f, 60.0f, out _);
-            baseLimb.TranslateTowardsPoint(new Vector3(baseLimb.position.x, baseLimb.position.y + 1.0f, 1.0f), 1, out _);
+            torsoLimb.RotateTowardsAngle(90.0f, 90.0f, out bool collapseReached);
+            leftUpperLegLimb.RotateTowardsAngle(140.0f, 70.0f, out _);
+            leftLowerLegLimb.RotateTowardsAngle(80.0f, 120.0f, out _);
+            rightUpperLegLimb.RotateTowardsAngle(160.0f, 90.0f, out _);
+            rightLowerLegLimb.RotateTowardsAngle(80.0f, 120.0f, out _);
+            headLimb.RotateTowardsAngle(120.0f, 50.0f, out _);
+            torsoLimb.TranslateTowardsPoint(new Vector3(torsoLimb.position.x, torsoLimb.position.y - 5.0f, 5.0f), 3, out _);
 
-            //if (baseLimb.rotation >= 90.0f)
+            //if (torsoLimb.rotation >= 90.0f)
             if (collapseReached)
             {
                 wait = 1.0f + Time.time;                
@@ -245,22 +331,26 @@ public class AdvancedAvatar : MonoBehaviour
         //Rise forwards and limb movement
         if (collapsing && !fall && wait <= Time.time)
         {
-            baseLimb.RotateTowardsAngle(0.0f, 90.0f, out bool riseReached);
-            lowerArmLimb.RotateTowardsAngle(0.0f, 30.0f, out _);
-            upperArmLimb.RotateTowardsAngle(0.0f, 120.0f, out _);
+            torsoLimb.RotateTowardsAngle(0.0f, 90.0f, out bool riseReached);
+            leftUpperLegLimb.RotateTowardsAngle(0.0f, 60.0f, out _);
+            leftLowerLegLimb.RotateTowardsAngle(0.0f, 180.0f, out _);
+            rightUpperLegLimb.RotateTowardsAngle(0.0f, 60.0f, out _);
+            rightLowerLegLimb.RotateTowardsAngle(0.0f, 180.0f, out _);
             headLimb.RotateTowardsAngle(0.0f, 60.0f, out _);
-            baseLimb.TranslateTowardsPoint(new Vector3(baseLimb.position.x, baseLimb.position.y - 1.0f, 1.0f), 1, out _);
+            torsoLimb.TranslateTowardsPoint(new Vector3(torsoLimb.position.x, torsoLimb.position.y + 5.0f, 5.0f), 3, out _);
 
-            //if (baseLimb.rotation <= 0.0f)
+            //if (torsoLimb.rotation <= 0.0f)
             if (riseReached)
             {
                 collapsing = false;
                 moving = true;
 
                 // Return to original state
-                baseLimb.TranslateTowardsPoint(new Vector3(baseLimb.position.x, 0.0f, 1.0f), float.MaxValue, out _);
-                lowerArmLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
-                upperArmLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                torsoLimb.TranslateTowardsPoint(new Vector3(torsoLimb.position.x, 3.0f, 1.0f), float.MaxValue, out _);
+                leftUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                leftLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                rightUpperLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
+                rightLowerLegLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
                 headLimb.RotateTowardsAngle(0.0f, float.MaxValue, out _);
             }
         }
